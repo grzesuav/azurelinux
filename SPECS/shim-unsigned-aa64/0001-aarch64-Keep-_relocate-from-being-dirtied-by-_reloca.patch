@@ -1,0 +1,105 @@
+From de8c3582d2eb280bf6b358349e04a959b945f1a5 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Fri, 1 Jul 2022 15:52:51 -0400
+Subject: [PATCH] aarch64: Keep _relocate() from being dirtied by _relocate()
+
+[Patch is a gnu-efi patch we apply to the bundled copy.]
+
+This could all be wrong, but the fix seems to work.  Here's my theory of
+what's going on.  We have a bug report that says:
+
+    No EFI system partition
+    Booting /efi\boot\bootaa64.efi
+    No EFI system partition
+    Failed to persist EFI variables
+    "Synchronous Abort" handler, esr 0x02000000
+    elr: fffffffffeb48a28 lr : fffffffffeb3f024 (reloc)
+    elr: 000000003ca1aa28 lr : 000000003ca11024
+    x0 : 000000003ca0d000 x1 : 000000003ca22018
+    x2 : 000000003ca22000 x3 : 0000000000000018
+    x4 : 0000000000001488 x5 : 0000000000000000
+    x6 : 0000000000001000 x7 : 0000000000000000
+    x8 : 0000000000000007 x9 : 0000000000003ca0
+    x10: 000000003ca3e040 x11: 00000000b0b87665
+    x12: 000000007c70ea25 x13: 000000005a827999
+    x14: 000000006ed9eba1 x15: 000000008f1bbcdc
+    x16: 000000003df97394 x17: 00000000b7ce40b7
+    x18: 0000000000000011 x19: 000000003caeb000
+    x20: 0000000000000000 x21: 000000003dc1ba50
+    x22: 000000003caff2f8 x23: 0000000000000001
+    x24: 000000003caff000 x25: 000000003caff3c0
+    x26: 000000003caff3c8 x27: 000000003caff3d0
+    x28: 000000003caff3d8 x29: 000000003db3e600
+
+    Code: 8b000021 f82068a1 8b030042 cb030084 (f100009f)
+    UEFI image [0x000000003ca0d000:0x000000003ca24fff] pc=0xda28 '/efi\boot\fbaa64.efi'
+    Resetting CPU ...
+
+    resetting ...
+
+When I disassemble it, "8b000021 f82068a1 8b030042 cb030084 (f100009f)"
+at 0xda28 (aka 0x3ca1aa28 in our register dump above) is:
+
+    da18:       8b000021        add     x1, x1, x0
+    da1c:       f82068a1        str     x1, [x5, x0]
+    da20:       8b030042        add     x2, x2, x3
+    da24:       cb030084        sub     x4, x4, x3
+    da28:       f100009f        cmp     x4, #0x0
+
+Of course the Arm ARM says "cmp" cannot fault in this way, and %esr is
+less than helpful, for reasons I don't understand.  I believe what is
+happening is this.  Farther up in the file is the function
+StatusToString(), as seen here:
+
+  000000000000d960 <StatusToString>:
+    d960:       d0000022        adrp    x2, 13000 <gEfiGraphicsOutputProtocolGuid+0x8>
+    d964:       aa0103e3        mov     x3, x1
+    d968:       911f0042        add     x2, x2, #0x7c0
+    d96c:       f9400441        ldr     x1, [x2, #8]
+    d970:       b5000081        cbnz    x1, d980 <StatusToString+0x20>
+    d974:       b0000022        adrp    x2, 12000 <CSWTCH.43+0x516>
+    d978:       91124842        add     x2, x2, #0x492
+    d97c:       17fffc32        b       ca44 <SPrint>
+    d980:       f8410444        ldr     x4, [x2], #16
+    d984:       eb03009f        cmp     x4, x3
+    d988:       54ffff21        b.ne    d96c <StatusToString+0xc>  // b.any
+    d98c:       17fffe47        b       d2a8 <StrCpy>
+
+I believe when _relocate() gets to the relocations for 0xd960 the page
+being processed is evicted from the i$ and moved into the d$, and then
+when execution continues, the i$ raises an exception because it doesn't
+have the page in question, and it can't stall execution to fill it,
+because it's now owned (and dirty) in the other cache.
+
+There are a couple of ways to solve this, but I've taken the laziest
+one: align the code in _relocate() to its own page boundary.  This
+partially works because our link order means this code is actually the
+last function in .text, and so no relocations will ever land on this
+page.
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+[rharwood@redhat.com: adapt to shim]
+Signed-off-by: Robbie Harwood <rharwood@redhat.com>
+---
+ gnu-efi/gnuefi/reloc_aarch64.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/gnu-efi/gnuefi/reloc_aarch64.c b/gnu-efi/gnuefi/reloc_aarch64.c
+index 086727961c2..0022abdaca7 100644
+--- a/gnu-efi/gnuefi/reloc_aarch64.c
++++ b/gnu-efi/gnuefi/reloc_aarch64.c
+@@ -48,6 +48,11 @@ EFI_STATUS _relocate (long ldbase, Elf64_Dyn *dyn,
+ 	unsigned long *addr;
+ 	int i;
+ 
++	/*
++	 * We need this code to not be on the same page as any relocations.
++	 */
++	__asm__(".balign 4096\n");
++
+ 	for (i = 0; dyn[i].d_tag != DT_NULL; ++i) {
+ 		switch (dyn[i].d_tag) {
+ 			case DT_RELA:
+-- 
+2.35.1
+
