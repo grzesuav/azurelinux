@@ -1,5 +1,6 @@
 {
  "Signatures": {
-  "efivar-37.tar.bz2": "3c67feb93f901b98fbb897d5ca82931a6698b5bcd6ac34f0815f670d77747b9f"
+  "efivar-38.tar.bz2": "f018ed6e49c5f1c16d336d9fd7687ce87023276591921db1e49a314ad6515349",
+  "efivar.patches": "30cb81c49855c6ba5ce05c99e71a45969632009f94899386c726b5ad71298c97"
  }
 }
