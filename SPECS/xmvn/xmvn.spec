@@ -76,7 +76,7 @@ Requires:       plexus-sec-dispatcher
 Requires:       plexus-utils
 Requires:       sisu
 Requires:       slf4j
-Suggests:       maven-openjdk17
+Suggests:       maven-openjdk11
 Obsoletes:      xmvn-connector-aether < 4.0.0
 
 %description    minimal
@@ -153,12 +153,12 @@ mver=$(sed -n '/<mavenVersion>/{s/.*>\(.*\)<.*/\1/;p}' \
 mkdir -p target/dependency/
 cp -a "${maven_home}" target/dependency/apache-maven-$mver
 
-# Workaround easymock incompatibility with Java 17that should be fixed            
-# in easymock 4.4: https://github.com/easymock/easymock/issues/274            
-%pom_add_plugin :maven-surefire-plugin xmvn-connector "<configuration>
-    <argLine>--add-opens=java.base/java.lang=ALL-UNNAMED</argLine></configuration>"
-%pom_add_plugin :maven-surefire-plugin xmvn-tools/xmvn-install "<configuration>
-    <argLine>--add-opens=java.base/java.lang=ALL-UNNAMED</argLine></configuration>"
+# # Workaround easymock incompatibility with Java 17that should be fixed            
+# # in easymock 4.4: https://github.com/easymock/easymock/issues/274            
+# %pom_add_plugin :maven-surefire-plugin xmvn-connector "<configuration>
+#     <argLine>--add-opens=java.base/java.lang=ALL-UNNAMED</argLine></configuration>"
+# %pom_add_plugin :maven-surefire-plugin xmvn-tools/xmvn-install "<configuration>
+#     <argLine>--add-opens=java.base/java.lang=ALL-UNNAMED</argLine></configuration>"
     
 %build
 %mvn_build -j -- -P\\!quality
