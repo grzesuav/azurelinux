@@ -762,6 +762,7 @@
                 "libtomcrypt",
                 "libtommath",
                 "libtpms",
+                "libtracecmd",
                 "libtraceevent",
                 "libtracefs",
                 "libtranslit",
