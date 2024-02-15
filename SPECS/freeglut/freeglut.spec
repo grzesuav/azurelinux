@@ -3,7 +3,7 @@ Distribution:   Azure Linux
 Summary:        A freely licensed alternative to the GLUT library
 Name:           freeglut
 Version:        3.2.1
-Release:        4%{?dist}
+Release:        5%{?dist}
 URL:            http://freeglut.sourceforge.net
 Source0:        https://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 # For the manpages
@@ -14,7 +14,7 @@ License:        MIT
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
 BuildRequires:  cmake
-BuildRequires:  pkgconfig libGLU-devel libXext-devel libXxf86vm-devel
+BuildRequires:  pkgconfig mesa-libGLU-devel libXext-devel libXxf86vm-devel
 BuildRequires:  libXi-devel libICE-devel
 # The virtual Provides below is present so that this freeglut package is a
 # drop in binary replacement for "glut" which will satisfy rpm dependancies
@@ -39,7 +39,7 @@ joystick functions.
 %package devel
 Summary:        Freeglut developmental libraries and header files
 Requires:       %{name} = %{version}-%{release}
-Requires:       libGL-devel libGLU-devel
+Requires:       mesa-libGL-devel mesa-libGLU-devel
 Provides:       glut-devel = 3.7
 Obsoletes:      glut-devel < 3.7
 
@@ -82,6 +82,9 @@ install -p -m 644 doc/man/*.3 $RPM_BUILD_ROOT/%{_mandir}/man3
 %{_libdir}/cmake/FreeGLUT/*
 
 %changelog
+* Thu Feb 15 2024 Aadhar Agarwal <aadagarwal@microsoft.com> - 3.2.1-5
+- Promote package to Mariner base repo
+
 * Fri Oct 15 2021 Pawel Winogrodzki <pawelwi@microsoft.com> - 3.2.1-4
 - Initial CBL-Mariner import from Fedora 32 (license: MIT).
 
