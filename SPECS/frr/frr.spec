@@ -1,9 +1,9 @@
 %global frr_libdir %{_libexecdir}/frr
 
-Summary:        Routing daemon
 Name:           frr
-Version:        8.5.3
-Release:        2%{?dist}
+Version:        9.1
+Release:        1%{?dist}
+Summary:        Routing daemon
 License:        GPL-2.0-or-later
 Vendor:         Microsoft Corporation
 Distribution:   Azure Linux
@@ -11,25 +11,25 @@ URL:            https://www.frrouting.org
 Source0:        https://github.com/FRRouting/frr/archive/refs/tags/%{name}-%{version}.tar.gz
 Source1:        %{name}-tmpfiles.conf
 Source2:        %{name}-sysusers.conf
-Patch0:         0000-remove-babeld-and-ldpd.patch
-Patch1:         0001-enable-openssl.patch
-Patch2:         0002-disable-eigrp-crypto.patch
-Patch3:         0003-fips-mode.patch
-Patch4:         0004-remove-grpc-test.patch
+
+Patch0000:      0000-remove-babeld-and-ldpd.patch
+Patch0002:      0001-enable-openssl.patch
+Patch0003:      0002-disable-eigrp-crypto.patch
+Patch0004:      0003-remove-grpc-test.patch
+
 BuildRequires:  autoconf
 BuildRequires:  automake
-BuildRequires:  bison
+BuildRequires:  bison >= 2.7
 BuildRequires:  c-ares-devel
 BuildRequires:  flex
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
+BuildRequires:  git-core
 BuildRequires:  groff
-BuildRequires:  grpc-devel
-BuildRequires:  grpc-plugins
 BuildRequires:  json-c-devel
 BuildRequires:  libcap-devel
 BuildRequires:  libtool
-BuildRequires:  libyang-devel
+BuildRequires:  libyang-devel >= 2.0.0
 BuildRequires:  make
 BuildRequires:  ncurses
 BuildRequires:  ncurses-devel
@@ -39,16 +39,14 @@ BuildRequires:  patch
 BuildRequires:  perl-XML-LibXML
 BuildRequires:  perl-generators
 BuildRequires:  python3-devel
+BuildRequires:  python3-pytest
 BuildRequires:  python3-sphinx
-BuildRequires:  re2-devel
 BuildRequires:  readline-devel
 BuildRequires:  systemd-devel
 BuildRequires:  systemd-rpm-macros
 BuildRequires:  texinfo
-%if 0%{?with_check}
-BuildRequires:  python3-pip
-BuildRequires:  python3-pytest
-%endif
+BuildRequires:  protobuf-c-devel
+
 Requires:       ncurses
 Requires:       net-snmp
 Requires(post): hostname
@@ -56,6 +54,8 @@ Requires(post): hostname
 Requires(post): systemd
 Requires(postun): systemd
 Requires(preun): systemd
+
+Obsoletes:      quagga < 1.2.4-17
 Provides:       routingdaemon = %{version}-%{release}
 
 %description
@@ -63,12 +63,15 @@ FRRouting is free software that manages TCP/IP based routing protocols. It takes
 a multi-server and multi-threaded approach to resolve the current complexity
 of the Internet.
 
-FRRouting supports BGP4, OSPFv2, OSPFv3, ISIS, RIP, RIPng, PIM, NHRP, PBR, EIGRP and BFD.
+FRRouting supports BGP4, OSPFv2, OSPFv3, ISIS, RIP, RIPng, PIM, NHRP, PBR,
+EIGRP and BFD.
 
 FRRouting is a fork of Quagga.
 
 %prep
 %autosetup -p1 -n %{name}-%{name}-%{version}
+# C++14 or later needed for abseil-cpp 20230125; string_view needs C++17:
+sed -r -i 's/(AX_CXX_COMPILE_STDCXX\(\[)11(\])/\117\2/' configure.ac
 
 %build
 autoreconf -ivf
@@ -96,28 +99,27 @@ autoreconf -ivf
     --with-moduledir=%{_libdir}/frr/modules \
     --with-crypto=openssl \
     --enable-fpm \
-    --enable-grpc
+    --disable-grpc
 
 %make_build MAKEINFO="makeinfo --no-split" PYTHON=python3
 
 # Build info documentation
 %make_build -C doc info
 
-
 %install
+# TODO '%{buildroot}%{_localstatedir}/log/frr %{buildroot}%{_infodir}' ???
 mkdir -p %{buildroot}%{_sysconfdir}/{frr,rc.d/init.d,sysconfig,logrotate.d,pam.d,default} \
-         %{buildroot}%{_rundir}/frr/log/frr \
-         %{buildroot}%{_infodir} \
-         %{buildroot}%{_unitdir} \
-         %{buildroot}%{_tmpfilesdir} \
-         %{buildroot}%{_sysusersdir} \
-         %{buildroot}%{frr_libdir}
+         %{buildroot}%{_rundir}/frr/log/frr %{buildroot}%{_infodir} \
+         %{buildroot}%{_unitdir}
 
+# TODO Needed? mkdir -p -m 0755 %{buildroot}%{frr_libdir}
 mkdir -p -m 0755 %{buildroot}%{_libdir}/frr
+mkdir -p %{buildroot}%{_tmpfilesdir}
+mkdir -p %{buildroot}%{_sysusersdir}
 
 %make_install
 
-# Remove this file, this package should not own the top-level info dir file for the whole system
+# Remove this file, as it is uninstalled and causes errors when building on RH9
 rm -rf %{buildroot}%{_infodir}/dir
 
 install -p -m 644 %{SOURCE1} %{buildroot}%{_tmpfilesdir}/%{name}.conf
@@ -127,6 +129,7 @@ install -p -m 644 tools/frr.service %{buildroot}%{_unitdir}/frr.service
 install -p -m 755 tools/frrinit.sh %{buildroot}%{frr_libdir}/frr
 install -p -m 755 tools/frrcommon.sh %{buildroot}%{frr_libdir}/frrcommon.sh
 install -p -m 755 tools/watchfrr.sh %{buildroot}%{frr_libdir}/watchfrr.sh
+
 install -p -m 644 redhat/frr.logrotate %{buildroot}%{_sysconfdir}/logrotate.d/frr
 install -p -m 644 redhat/frr.pam %{buildroot}%{_sysconfdir}/pam.d/frr
 install -d -m 775 %{buildroot}/run/frr
@@ -134,21 +137,24 @@ install -d -m 775 %{buildroot}/run/frr
 # Delete libtool archives
 find %{buildroot} -type f -name "*.la" -delete -print
 
-# Upstream does not maintain a stable API, these files from -devel subpackage are no longer needed
+#Upstream does not maintain a stable API, these headers from -devel subpackage are no longer needed
 rm %{buildroot}%{_libdir}/frr/*.so
 rm -r %{buildroot}%{_includedir}/frr/
 
 %pre
+# TODO: %sysusers_create_compat %{SOURCE2} ???
 %sysusers_create_package %{name} %{SOURCE2}
 
 %post
 %systemd_post frr.service
+
 # Create dummy files if they don't exist so basic functions can be used.
 if [ ! -e %{_sysconfdir}/frr/frr.conf ]; then
     echo "hostname `hostname`" > %{_sysconfdir}/frr/frr.conf
     chown frr:frr %{_sysconfdir}/frr/frr.conf
     chmod 640 %{_sysconfdir}/frr/frr.conf
 fi
+
 #still used by vtysh, this way no error is produced when using vtysh
 if [ ! -e %{_sysconfdir}/frr/vtysh.conf ]; then
     touch %{_sysconfdir}/frr/vtysh.conf
@@ -163,7 +169,7 @@ fi
 %systemd_preun frr.service
 
 %check
-%{python3} -m pip install atomicwrites attrs docutils pluggy pygments six more-itertools
+# TODO Needed??? %{python3} -m pip install atomicwrites attrs docutils pluggy pygments six more-itertools
 #this should be temporary, the grpc test is just badly designed
 rm tests/lib/*grpc*
 %make_build check PYTHON=python3
@@ -172,6 +178,7 @@ rm tests/lib/*grpc*
 %license COPYING
 %doc doc/mpls
 %dir %attr(750,frr,frr) %{_sysconfdir}/frr
+# TODO %dir %attr(755,frr,frr) %{_localstatedir}/log/frr ???
 %dir %attr(755,frr,frr) %{_rundir}/frr/log/frr
 %dir %attr(755,frr,frr) /run/frr
 %{_infodir}/*info*
@@ -197,6 +204,9 @@ rm tests/lib/*grpc*
 %{_sysusersdir}/%{name}.conf
 
 %changelog
+* Fri Feb 16 2024 Vince Perri <viperri@microsoft.com> - 9.1-1
+- Upgrade to 9.1, using Fedora 40 for reference
+
 * Wed Sep 20 2023 Jon Slobodzian <joslobo@microsoft.com> - 8.5.3-2
 - Recompile with stack-protection fixed gcc version (CVE-2023-4039)
 
