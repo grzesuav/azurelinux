@@ -1,7 +1,7 @@
 Summary:        Virtual Python Environment builder
 Name:           python-virtualenv
-Version:        20.14.0
-Release:        3%{?dist}
+Version:        20.25.0
+Release:        1%{?dist}
 License:        MIT
 Vendor:         Microsoft Corporation
 Distribution:   Azure Linux
@@ -53,6 +53,9 @@ tox -e py
 %{_bindir}/virtualenv
 
 %changelog
+* Wed Feb 21 2024 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 20.25.0-1
+- Auto-upgrade to 20.25.0 - 3.0 package upgrade
+
 * Wed Dec 21 2022 Riken Maharjan <rmaharjan@microsoft.com> - 20.14.0-3
 - Add missing runtime dependencies
 
