@@ -32,6 +32,7 @@ and systemd preset files that determine which services are enabled by default.
 install -d %{buildroot}%{_sysconfdir}
 install -d %{buildroot}%{_libdir}
 install -d %{buildroot}%{_rpmmacrodir}
+install -d %{buildroot}%{_rpmmacrodir}
 
 cat <<-"EOF" > %{buildroot}%{_libdir}/azurelinux-release
 %{distribution} %{version}
@@ -71,6 +72,20 @@ EOF
 ln -sv ..%{_libdir}/issue.net %{buildroot}%{_sysconfdir}/issue.net
 
 install -d -m 755 %{buildroot}%{_sysconfdir}/issue.d
+
+cat <<-"EOF" > %{buildroot}%{_rpmmacrodir}/macros.dist
+# dist macros.
+
+%%__bootstrap         ~bootstrap
+%%azl                 %{dist_version}
+%%azl%{dist_version}  1
+%%dist                .azl%{dist_version}%%{?with_bootstrap:%%{__bootstrap}}
+%%dist_vendor         %{vendor}
+%%dist_name           %{distribution}
+%%dist_home_url       %{url}
+%%dist_bug_report_url %{url}
+%%dist_debuginfod_url %{url}
+EOF
 
 cat <<-"EOF" > %{buildroot}%{_rpmmacrodir}/macros.dist
 # dist macros.
