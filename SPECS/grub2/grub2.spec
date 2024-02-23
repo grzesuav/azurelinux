@@ -121,7 +121,7 @@ to be persistently stored on AzureLinux
 LDFLAGS="`echo " %{build_ldflags} " | sed 's#-Wl,-dT,%{_topdir}/BUILD/module_info.ld##'`"
 export LDFLAGS
 
-%autosetup -p1 -n grub-2.06
+%autosetup -p1 -n grub-%{version}
 cp %{SOURCE1} gnulib-%{gnulibversion}.tar.gz
 tar -zxf gnulib-%{gnulibversion}.tar.gz
 mv gnulib-%{gnulibversion} gnulib
