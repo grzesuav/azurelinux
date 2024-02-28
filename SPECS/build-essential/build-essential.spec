@@ -11,7 +11,6 @@ Requires:       diffutils
 Requires:       gawk
 Requires:       gcc
 Requires:       glibc-devel
-Requires:       installkernel
 Requires:       kernel-headers
 Requires:       libtool
 Requires:       make
