@@ -1,7 +1,7 @@
 %define majorver %(echo %{version} | cut -d. -f1-2)
 Summary:        Low-level libraries useful for providing data structure handling for C.
 Name:           glib
-Version:        2.78.1
+Version:        2.79.1
 Release:        1%{?dist}
 License:        LGPLv2+
 Vendor:         Microsoft Corporation
@@ -21,6 +21,7 @@ BuildRequires:  python3
 BuildRequires:  python3-libs
 BuildRequires:  which
 BuildRequires:  python3-pygments
+BuildRequires:  python3-packaging
 Requires:       libffi
 Requires:       libselinux
 Requires:       pcre-libs
@@ -70,6 +71,8 @@ The glib2-doc package includes documentation for the GLib library.
 %build
 %meson \
     -Dgtk_doc=true \
+    -Dintrospection=disabled \
+    -Dman-pages=disabled \
     --default-library=both
 
 %meson_build
@@ -95,6 +98,7 @@ touch %{buildroot}%{_libdir}/gio/modules/giomodule.cache
 %{_libdir}/libgthread-*.so.*
 %{_libdir}/libgmodule-*.so.*
 %{_libdir}/libgio-*.so.*
+%{_libdir}/libgirepository-*.so.*
 %{_libdir}/libgobject-*.so.*
 %{_libexecdir}/gio-launch-desktop
 
@@ -120,9 +124,11 @@ touch %{buildroot}%{_libdir}/gio/modules/giomodule.cache
 %{_datadir}/glib-2.0/schemas/*
 
 %files doc
-%doc %{_datadir}/gtk-doc/html/*
 
 %changelog
+* Tue Feb 27 2024 Betty Lakes <bettylakes@microsoft.com> - 2.79.1-1
+- Update version to 2.79.1
+
 * Mon Nov 27 2023 Andrew Phelps <anphel@microsoft.com> - 2.78.1-1
 - Upgrade to version 2.78.1
 
