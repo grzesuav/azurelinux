@@ -604,4 +604,3 @@ zstd-1.5.5-2.azl3.aarch64.rpm
 zstd-debuginfo-1.5.5-2.azl3.aarch64.rpm
 zstd-devel-1.5.5-2.azl3.aarch64.rpm
 zstd-doc-1.5.5-2.azl3.aarch64.rpm
-zstd-libs-1.5.5-2.azl3.aarch64.rpm
