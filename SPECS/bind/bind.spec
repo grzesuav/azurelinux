@@ -234,9 +234,6 @@ cp -r bin/dnssec{,-pkcs11}
 cp -r lib/dns{,-pkcs11}
 cp -r lib/ns{,-pkcs11}
 
-# debug
-head -n 25 configure.ac
-
 libtoolize -c -f; %{_bindir}/aclocal -I m4 --force; %{_bindir}/autoconf -f 
 
 %build
