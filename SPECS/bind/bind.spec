@@ -31,6 +31,7 @@ Source12:       generate-rndc-key.sh
 Source13:       named.rwtab
 Source14:       setup-named-softhsm.sh
 Source15:       named-chroot.files
+Patch0:         nongit-fix.patch
 
 BuildRequires:  gcc
 BuildRequires:  git
@@ -226,13 +227,17 @@ Summary:        BIND utilities
 
 %prep
 %setup -q
+%patch0 -p1
 
 cp -r bin/named{,-pkcs11}
 cp -r bin/dnssec{,-pkcs11}
 cp -r lib/dns{,-pkcs11}
 cp -r lib/ns{,-pkcs11}
 
-libtoolize -c -f; aclocal -I m4 --force; autoconf -f
+# debug
+head -n 25 configure.ac
+
+libtoolize -c -f; %{_bindir}/aclocal -I m4 --force; %{_bindir}/autoconf -f 
 
 %build
 
