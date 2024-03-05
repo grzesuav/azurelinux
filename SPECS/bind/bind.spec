@@ -43,6 +43,7 @@ BuildRequires:  libuv-devel
 BuildRequires:  lmdb-devel
 BuildRequires:  make
 BuildRequires:  mariadb-devel
+BuildRequires:  nghttp2-devel
 BuildRequires:  openldap-devel
 BuildRequires:  openssl-devel
 BuildRequires:  postgresql-devel
@@ -50,7 +51,6 @@ BuildRequires:  python3
 BuildRequires:  python3-ply
 BuildRequires:  sqlite-devel
 BuildRequires:  systemd-rpm-macros
-BuildRequires:  userspace-rcu
 BuildRequires:  userspace-rcu-devel
 
 Requires:       libuv
