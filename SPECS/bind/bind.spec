@@ -51,9 +51,11 @@ BuildRequires:  python3-ply
 BuildRequires:  sqlite-devel
 BuildRequires:  systemd-rpm-macros
 BuildRequires:  userspace-rcu
+BuildRequires:  userspace-rcu-devel
 
 Requires:       libuv
 Requires:       openssl
+Requires:       userspace-rcu
 Requires(postun): %{_sbindir}/groupdel
 Requires(postun): %{_sbindir}/userdel
 Requires(pre):  %{_sbindir}/groupadd
