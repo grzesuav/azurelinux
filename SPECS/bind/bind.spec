@@ -50,6 +50,7 @@ BuildRequires:  python3
 BuildRequires:  python3-ply
 BuildRequires:  sqlite-devel
 BuildRequires:  systemd-rpm-macros
+BuildRequires:  userspace-rcu
 
 Requires:       libuv
 Requires:       openssl
@@ -234,9 +235,12 @@ cp -r bin/dnssec{,-pkcs11}
 cp -r lib/dns{,-pkcs11}
 cp -r lib/ns{,-pkcs11}
 
-libtoolize -c -f; %{_bindir}/aclocal -I m4 --force; %{_bindir}/autoconf -f 
 
-%build
+mkdir backup
+mv compile depcomp missing backup/
+libtoolize -c -f; %{_bindir}/aclocal -I m4 --force; %{_bindir}/autoconf -f 
+mv backup/* .
+rmdir backup
 
 # DLZ modules do not support oot builds. Copy files into build
 mkdir -p build/contrib/dlz
