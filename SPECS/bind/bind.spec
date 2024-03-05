@@ -265,11 +265,6 @@ cp -frp contrib/dlz/modules build/contrib/dlz/modules
 %make_build
 
 pushd build/contrib/dlz/modules
-for DIR in mysql mysqldyn; do
-  sed -e 's/@DLZ_DRIVER_MYSQL_INCLUDES@/$(shell mysql_config --cflags)/' \
-      -e 's/@DLZ_DRIVER_MYSQL_LIBS@/$(shell mysql_config --libs)/' \
-      $DIR/Makefile.in > $DIR/Makefile
-done
 for DIR in filesystem ldap mysql mysqldyn sqlite3; do
   make -C $DIR CFLAGS="-fPIC -I../include $CFLAGS $LDFLAGS"
 done
