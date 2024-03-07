@@ -306,10 +306,14 @@ install -m 644 %{SOURCE1} %{buildroot}%{_sysconfdir}/sysconfig/named
 install -m 644 %{SOURCE15} %{buildroot}%{_sysconfdir}/named-chroot.files
 
 # Install isc/errno2result.h header
-install -m 644 lib/isc/unix/errno2result.h %{buildroot}%{_includedir}/bind9/isc
+install -m 644 lib/isc/errno2result.h %{buildroot}%{_includedir}/bind9/isc
 
 # Files required to run test-suite outside of build tree:
 cp -fp config.h %{buildroot}%{_includedir}/bind9
+
+# debugging
+echo "Separator"
+cp -r bin/named-pkcs11 %{buildroot}%{_bindir}/
 
 # Remove libtool .la files:
 find %{buildroot} -type f -name "*.la" -delete -print
@@ -439,8 +443,8 @@ fi;
 %config(noreplace) %{_sysconfdir}/logrotate.d/named
 %{_sysconfdir}/rwtab.d/named
 %{_tmpfilesdir}/named.conf
-%{_sbindir}/named-journalprint
-%{_sbindir}/named-checkconf
+%{_bindir}/named-journalprint
+%{_bindir}/named-checkconf
 %{_bindir}/named-rrchecker
 %{_bindir}/mdig
 %{_sbindir}/named
@@ -453,11 +457,11 @@ fi;
 %{_mandir}/man5/rndc.conf.5*
 %{_mandir}/man8/rndc.8*
 %{_mandir}/man8/named.8*
-%{_mandir}/man8/named-checkconf.8*
+%{_mandir}/man1/named-checkconf.1*
 %{_mandir}/man8/rndc-confgen.8*
-%{_mandir}/man8/named-journalprint.8*
+%{_mandir}/man1/named-journalprint.1*
 %{_mandir}/man8/filter-aaaa.8.gz
-%doc CHANGES README named.conf.default
+%doc CHANGES README.md named.conf.default
 %doc sample/
 
 %defattr(0660,root,named,01770)
@@ -529,7 +533,7 @@ fi;
 %{_includedir}/bind9/isccfg
 
 %files pkcs11
-%{_sbindir}/named-pkcs11
+%{_bindir}/named-pkcs11
 %{_mandir}/man8/named-pkcs11.8*
 %{_libexecdir}/setup-named-softhsm.sh
 
