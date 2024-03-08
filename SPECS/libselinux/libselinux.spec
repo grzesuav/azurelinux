@@ -1,7 +1,7 @@
 Summary:        SELinux library and simple utilities
 Name:           libselinux
 Version:        3.6
-Release:        1%{?dist}
+Release:        2%{?dist}
 License:        Public Domain
 Vendor:         Microsoft Corporation
 Distribution:   Azure Linux
@@ -47,7 +47,7 @@ The libselinux-utils package contains the utilities
 Summary:        Header files and libraries used to build SELinux
 Group:          Development/Libraries
 Requires:       %{name} = %{version}-%{release}
-Requires:       pcre-devel
+Requires:       pcre2-devel
 Requires:       libsepol-devel >= %{version}
 
 %description    devel
@@ -110,6 +110,9 @@ echo "d %{_localstatedir}/run/setrans 0755 root root" > %{buildroot}/%{_libdir}/
 %{python3_sitelib}/*
 
 %changelog
+* Fri Feb 08 2024 Betty Lakes <bettylakes@microsoft.com> - 3.6-2
+- Move to pcre2 completely
+
 * Tue Feb 06 2024 Cameron Baird <cameronbaird@microsoft.com> - 3.6-1
 - Upgrade to version 3.6
 - Build against pcre2
