@@ -1,10 +1,10 @@
 Summary:        Dynamic host configuration protocol
 Name:           dhcp
-Version:        4.4.3
-Release:        1%{?dist}
+Version:        4.4.3_P1
+Release:        2%{?dist}
 License:        MPLv2.0
 Url:            https://www.isc.org/dhcp/
-Source0:        ftp://ftp.isc.org/isc/dhcp/%{version}/%{name}-%{version}.tar.gz
+Source0:        https://downloads.isc.org/isc/%{name}/%{gsub %version _ -}/%{name}-%{gsub %version _ -}.tar.gz
 Group:          System Environment/Base
 Vendor:         Microsoft Corporation
 Distribution:   Azure Linux
@@ -169,6 +169,9 @@ mkdir -p %{buildroot}%{_localstatedir}/lib/dhclient/
 %{_mandir}/man8/dhclient.8.gz
 
 %changelog
+* Fri Mar 08 2024 Dan Streetman <ddstreet@microsoft.com> - 4.4.3_P1-2
+- update to final isc-dhcp version, which has been EOL since Dec 2022
+
 * Fri Oct 27 2023 CBL-Mariner Servicing Account <cblmargh@microsoft.com> - 4.4.3-1
 - Auto-upgrade to 4.4.3 - Azure Linux 3.0 - package upgrades
 
